@@ -1,0 +1,7 @@
+select * from employee;
+
+select * from employee where phone != '1';
+
+select * from employee where phone is null;
+
+select * from employee where phone is not null;

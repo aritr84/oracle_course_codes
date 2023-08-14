@@ -1,0 +1,25 @@
+-- subqueries
+-- problem 1
+
+select *
+from department 
+where id = (
+    select department_id 
+    from employee where birthdate = (
+        select max(birthdate) 
+        from employee
+        )
+    );
+    
+-- problem 2
+select name,
+    (select avg(salary) from employee where department_id = department.id) as average_salary,
+    (select min(birthdate) from employee where department_id = department.id) as old_emp_birthdate
+from department 
+order by id desc;
+    
+    
+    
+    
+    
+    

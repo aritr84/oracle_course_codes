@@ -1,0 +1,169 @@
+-- scalar subquery --
+-- subquery returns one column and one row (single result)
+SELECT
+    *
+FROM
+    employee
+WHERE
+    salary = (
+        SELECT
+            MAX(salary)
+        FROM
+            employee
+    );
+    
+
+select * from employee where department_id in (
+    select id from department where monthly_budget > 20000
+);
+
+select *
+from department d
+where (
+    select count(*)
+    from employee
+    where department_id = d.id
+) > 3;
+
+-- inline views
+
+select *
+from 
+    (
+        select department_id, avg(salary) as average_salary
+        from employee
+        group by department_id
+    )
+    e
+where e.average_salary > 4000;
+
+-- with clause
+
+with emp as 
+    (
+        select department_id, avg(salary) as average_salary
+        from employee
+        group by department_id
+)
+select * 
+from emp e
+where e.average_salary > 4000;
+
+-- example 2 -
+
+-- query1 - return department_id where employees salary > 3000 and employee born after 1985 and 
+-- has count of at least 2.
+select department_id
+from employee
+where salary > 3000 and birthdate >= date'1986-01-01'
+group by department_id
+having count(*) >= 2;
+
+
+-- main query -> return the details of employee who are in department returned by query 1
+
+select * 
+from employee
+where department_id in (
+    select department_id
+    from employee
+    where salary > 3000 and birthdate >= date'1986-01-01'
+    group by department_id
+    having count(*) >= 2
+) 
+-- the conditions are applied on the subquery aur wo query execute hone ke sath 
+-- condition khatm ho jata hai.
+-- main query ke pas bas ek table hai of list of department_id
+-- thatswhy we have to mention the conditions.
+and salary > 3000
+and bitrthdate >= date'1986-01-01';
+
+-- writing the above using with clause
+
+with filtered_emp as (
+    select * from employee
+    where salary > 3000 
+    and birthdate >= date'1986-01-01'
+)
+select * 
+from filtered_emp
+where department_id in (
+    select department_id
+    from filtered_emp
+    group by department_id
+    having count(*) > 1
+);
+
+-- define aliases in with clause
+with subquery1 (name, dept_id, phone, new_total_salary)
+as
+( 
+    select name, department_id, nvl(phone, 'NO PHONE'), salary * 1.25 + nvl(bonus,0)
+    from employee
+)
+select *
+from subquery1;
+    
+
+-- multiple subquery using with
+
+with subquery1 (name, dept_id, phone, new_total_salary)
+as
+( 
+    select name, department_id, nvl(phone, 'NO PHONE'), salary * 1.25 + nvl(bonus,0)
+    from employee
+),
+subquery2 as (
+    select *
+    from subquery1
+    where new_total_salary < 5000
+)
+select *
+from subquery1;
+
+-- top n query
+
+-- using rownum
+
+with ordered as 
+(
+    select * 
+    from products
+    order by price desc
+)
+select * from ordered 
+where rownum <=3;
+
+-- use analytic functions --
+-- row limiting clause
+
+select * 
+from products 
+order by price desc
+fetch first 5 rows only;
+
+select * 
+from employee 
+order by salary desc
+fetch first 3 rows only;
+
+select * 
+from employee 
+order by salary desc
+fetch first 3 rows with ties; -- additional 4th row is returned as it has same price as row 3.
+
+-- return 3 rows start from the 5th row
+select * 
+from employee 
+order by salary desc
+offset 4 rows
+fetch first 3 rows only;
+
+
+
+
+
+
+
+
+
